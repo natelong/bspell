@@ -5,33 +5,58 @@ body{
 	font-family: Helvetica, Arial, sans-serif;
 	margin: 0;
 }
+body.correct{
+	background: #3db85c;
+}
 #bspellContainer{
 	font-size: 400%;
 }
 .letter{
 	float: left;
-	padding: 20px;
+	padding: 10px;
 	border: 1px solid #999;
 	position: absolute;
 	cursor: pointer;
-	background: #fff;
+	background: #0064cd;
+	z-index: 100;
+	color: #fff;
+	/* extra junk */
+	border-radius: 5px;
+	box-shadow: 0 0 5px rgba( 0, 0, 0, 0.6 );
+	background-image: -webkit-linear-gradient(top, #049cdb, #0064cd);
+	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+	border-color: #0064cd #0064cd #003f81;
+	border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
 }
 .letter.dragging{
-	background: #ccc;
+	box-shadow: 0 0 10px rgba( 0, 0, 0, 0.5 );
+	font-size: 1.1em;
 }
 .letter.correct{
-	background: #0f0;
+	background: transparent;
+	box-shadow: none;
+	border: none;
+	z-index: 100 !important;
 }
 #targetContainer{
-
+	padding: 20px;
+	text-align: center;
 }
 .target{
-	float: left;
-	border: 5px solid #669;
-	padding: 40px;
-	background: #fff;
+	display: inline-block;
+	border: 1px solid #669;
+	padding: 20px;
 	margin-right: 20px;
+	/* extra junk */
+	border-radius: 5px;
+	box-shadow: inset 0 0 10px rgba( 0, 0, 0, 0.5 );
+	background: #bbb;
+	background-image: -webkit-linear-gradient(top, #ccc, #bbb);
+}
+.target-inner{
+	position: relative;
+	top: -9999px;
 }
 .target.letter-hover{
-	background: #0f0;
+	background: #1e9a3e;
 }

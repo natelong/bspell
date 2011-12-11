@@ -7,6 +7,7 @@ var dragOffset = {
 	x: 0,
 	y: 0
 };
+var lastZIndex = 100;
 
 var clamp = function clamp( num, min, max ){
 	if( num < min ){
@@ -19,8 +20,8 @@ var clamp = function clamp( num, min, max ){
 };
 
 var contains = function contains( elem1, elem2 ){
-	var x1 = $( elem1 ).position().left;
-	var y1 = $( elem1 ).position().top;
+	var x1 = $( elem1 ).offset().left;
+	var y1 = $( elem1 ).offset().top;
 	var width1 = $( elem1 ).outerWidth();
 	var height1 = $( elem1 ).outerHeight();
 
@@ -29,10 +30,10 @@ var contains = function contains( elem1, elem2 ){
 	var width2 = $( elem2 ).outerWidth();
 	var height2 = $( elem2 ).outerHeight();
 
-	if( x2 > x1 + 10 &&
-			x2 + width2 < x1 + width1 - 10 &&
-			y2 > y1 + 10 &&
-			y2 + height2 < y1 + height1 - 10 ){
+	if( x2 > x1 &&
+			x2 + width2 < x1 + width1 &&
+			y2 > y1 &&
+			y2 + height2 < y1 + height1 ){
 		return true;			
 	}else{
 		return false;
@@ -40,26 +41,108 @@ var contains = function contains( elem1, elem2 ){
 };
 
 var isComplete = function isComplete(){
-	if( $( '.letter.correct' ).length === targets.length ){
-		$( 'body' ).css( 'background', '#0f0' );
+	if( $( '.letter.correct' ).length === $( '.target' ).length ){
+		$( 'body' ).addClass( 'correct' );
 	}
 };
 
+var getRandomPosition = function getRandomPosition( elem ){
+	var newTop = Math.random() * height;
+	var newLeft = Math.random() * width;
+	newTop = clamp( newTop, 200, height - $( elem ).outerHeight() - 20 );
+	newLeft = clamp( newLeft, 20, width - $( elem ).outerWidth() - 20 );
+	return {
+		x: newLeft,
+		y: newTop
+	}
+};
+
+var getRandomLetter = function getRandomLetter(){
+	return String.fromCharCode( 97 + Math.round( Math.random() * 25 ) );	
+};
+
+var alignTargetSizes = function alignTargetSizes(){
+	var maxWidth = 0;
+	var maxHeight = 0;
+	$( '.letter' ).each(function(){
+		var thisWidth = $( this ).outerWidth();
+		if( thisWidth > maxWidth ){
+			maxWidth = thisWidth;
+		}
+		var thisHeight = $( this ).outerHeight();
+		if( thisHeight > maxHeight ){
+			maxHeight = thisHeight;
+		}
+	});
+	$( '.target' ).each(function(){
+		$(this).css({
+			width: maxWidth,
+			height: maxHeight
+		});
+	});
+};
+
+var getNextWord = function getNextWord( onComplete ){
+	var word = location.hash.replace( '#', '' ) || 'burento';
+	if( word.indexOf( ',' ) !== -1 ){
+		word = word.split( ',' );
+	}
+	onComplete( word, 2 );
+};
+
+var getLetterHTML = function getLetterHTML( letter ){
+	return '<div class="letter">' + letter + '</div>';
+};
+var getTargetHTML = function getTargetHTML( letter ){
+	return '<div class="target"><span class="target-inner">' + letter + '</span></div>';
+};
+
+var initializeLevel = function initializeLevel( letters, dummyLetterCount ){
+	var i, len;
+	dummyLetterCount = dummyLetterCount || 0;
+	var dummyLetter = getRandomLetter();
+	var dummyLetters = [];
+
+	$( '#letterContainer' ).empty();
+	$( '#targetContainer' ).empty();
+
+	for( i = 0, len = letters.length; i < len; i++ ){
+		$( '#letterContainer' ).append( getLetterHTML( letters[ i ] ) );
+		$( '#targetContainer' ).append( getTargetHTML( letters[ i ] ) );
+	}
+
+	for( i = 0; i < dummyLetterCount; i++ ){
+		while( $.inArray( dummyLetter, letters ) !== -1 || $.inArray( dummyLetter, dummyLetters ) !== -1 ){
+			dummyLetter = getRandomLetter();
+		}
+		dummyLetters.push( dummyLetter );
+		$( '#letterContainer' ).append( getLetterHTML( dummyLetter ) );
+	}
+
+	alignTargetSizes();
+};
+
+getNextWord( initializeLevel );
+
+$( document ).bind( 'hashchange', function(){
+	getNextWord( initializeLevel );
+});
+
+
+
+
+
 $( 'body' ).css( 'height', $( window ).height() );
 
-$( 'body' ).bind( 'selectstart', function(){
+$( 'body' ).bind( 'selectstart selectend', function(){
 	return false;
 });
 
 $( '.letter' ).each(function(){
-	var newTop = Math.random() * height;
-	var newLeft = Math.random() * width;
+	var newPos = getRandomPosition( this );
 
-	newTop = clamp( newTop, $( targets[ 0 ] ).outerHeight(), height - $( this ).outerHeight() - 20 );
-	newLeft = clamp( newLeft, 0, width - $( this ).outerWidth() - 20 );
-
-	$(this).css('top', newTop );
-	$(this).css('left', newLeft );
+	$(this).css('top', newPos.y );
+	$(this).css('left', newPos.x );
 });
 
 $( 'body' ).on( 'mousedown touchstart', '.letter:not(.correct)', function( e ){
@@ -72,14 +155,41 @@ $( 'body' ).on( 'mousedown touchstart', '.letter:not(.correct)', function( e ){
 		var y = e.pageY;
 	}
 
+	lastZIndex++;
 	isDragging = e.target;
-	$( isDragging ).addClass( 'dragging' );
+	$( isDragging )
+		.addClass( 'dragging' )
+		.css( 'z-index', lastZIndex )
 
 	dragOffset.x = x - $( e.target ).offset().left;
 	dragOffset.y = y - $( e.target ).offset().top;
 });
 
 $( 'body' ).on( 'mouseup touchend', function(){
+
+	$( '.target' ).each(function(){
+		if( contains( this, isDragging ) ){
+			if(  $( this ).find( '.target-inner' )[ 0 ].innerHTML === isDragging.innerHTML ){
+				$( this ).addClass( 'letter-hover' );
+				$( isDragging )
+					.addClass( 'correct' )
+					.css({
+						top: $(this).offset().top + $(this).outerHeight() / 2 - $(isDragging).outerHeight() / 2,
+						left: $(this).offset().left + $(this).outerWidth() / 2 - $(isDragging).outerWidth() / 2
+					});
+
+				isDragging = false;
+				isComplete();
+			}else{
+				var newPos = getRandomPosition( isDragging );
+				$( isDragging ).animate({
+					top: newPos.y,
+					left: newPos.x
+				}, 'fast' );
+			}
+		}
+	});
+
 	$( isDragging ).removeClass( 'dragging' );
 	isDragging = false;
 });
@@ -101,17 +211,6 @@ $( 'body' ).bind( 'mousemove touchmove', function( e ){
 	$( isDragging ).css({
 		left: x - dragOffset.x,
 		top: y - dragOffset.y
-	});
-
-	$( targets ).each(function(){
-		if(  this.innerHTML === isDragging.innerHTML ){
-			if( contains( this, isDragging ) ){
-				$( this ).addClass( 'letter-hover' );
-				$( isDragging ).addClass( 'correct' );
-				isDragging = false;
-				isComplete();
-			}
-		}
 	});
 
 });
