@@ -1,6 +1,4 @@
 var targets = $( '.target' );
-var width = $( window ).width();
-var height = $( window ).height();
 
 var isDragging = false;
 var dragOffset = {
@@ -8,6 +6,7 @@ var dragOffset = {
 	y: 0
 };
 var lastZIndex = 100;
+var fudgeFactor = 20;
 
 var clamp = function clamp( num, min, max ){
 	if( num < min ){
@@ -20,6 +19,34 @@ var clamp = function clamp( num, min, max ){
 };
 
 var contains = function contains( elem1, elem2 ){
+	if( !elem1 || !elem2 ){
+		return false;
+	}
+	try{
+		var x1 = $( elem1 ).offset().left;
+		var y1 = $( elem1 ).offset().top;
+		var width1 = $( elem1 ).outerWidth();
+		var height1 = $( elem1 ).outerHeight();
+
+		var x2 = $( elem2 ).position().left;
+		var y2 = $( elem2 ).position().top;
+		var width2 = $( elem2 ).outerWidth();
+		var height2 = $( elem2 ).outerHeight();
+
+		if( x2 > x1 - fudgeFactor &&
+				x2 + width2 < x1 + width1 + fudgeFactor &&
+				y2 > y1 - fudgeFactor &&
+				y2 + height2 < y1 + height1 + fudgeFactor ){
+			return true;			
+		}else{
+			return false;
+		}
+	}catch( e ){
+		console.error( 'Error checking whether %o contains %o: %s', elem1, elem2, e );
+	}
+};
+
+var intersects = function intersects( elem1, elem2 ){
 	var x1 = $( elem1 ).offset().left;
 	var y1 = $( elem1 ).offset().top;
 	var width1 = $( elem1 ).outerWidth();
@@ -30,14 +57,28 @@ var contains = function contains( elem1, elem2 ){
 	var width2 = $( elem2 ).outerWidth();
 	var height2 = $( elem2 ).outerHeight();
 
-	if( x2 > x1 &&
-			x2 + width2 < x1 + width1 &&
-			y2 > y1 &&
-			y2 + height2 < y1 + height1 ){
+	if( (
+			( x2 > x1 - fudgeFactor && x2 < x1 + width1 + fudgeFactor ) ||
+			( x2 + width2 > x1 - fudgeFactor && x2 + width2 < x1 + width1 + fudgeFactor )
+		) && (
+			( y2 > y1 - fudgeFactor && y2 < y1 + height1 + fudgeFactor ) ||
+			( y2 + height2 > y1 - fudgeFactor && y2 + height2 < y1 + height1 + fudgeFactor )
+		) ){
 		return true;			
 	}else{
 		return false;
 	}
+};
+
+var intersectsAny = function intersectsAny( elem, rivals ){
+	var i, len;
+
+	for( i = 0, len = rivals.length; i < len; i++ ){
+		if( intersects( elem, rivals[ i ] ) ){
+			return true;
+		}
+	}
+	return false;
 };
 
 var isComplete = function isComplete(){
@@ -47,6 +88,8 @@ var isComplete = function isComplete(){
 };
 
 var getRandomPosition = function getRandomPosition( elem ){
+	var width = $( window ).width();
+	var height = $( window ).height();
 	var newTop = Math.random() * height;
 	var newLeft = Math.random() * width;
 	newTop = clamp( newTop, 200, height - $( elem ).outerHeight() - 20 );
@@ -84,10 +127,12 @@ var alignTargetSizes = function alignTargetSizes(){
 
 var getNextWord = function getNextWord( onComplete ){
 	var word = location.hash.replace( '#', '' ) || 'burento';
+	var img = 'http://4.bp.blogspot.com/-ekz67FY3QaA/TbZoxbVKTiI/AAAAAAAAAbM/QfjWUVU4kmc/s1600/bird.jpg';
+
 	if( word.indexOf( ',' ) !== -1 ){
 		word = word.split( ',' );
 	}
-	onComplete( word, 2 );
+	onComplete( word, 0, img );
 };
 
 var getLetterHTML = function getLetterHTML( letter ){
@@ -97,7 +142,7 @@ var getTargetHTML = function getTargetHTML( letter ){
 	return '<div class="target"><span class="target-inner">' + letter + '</span></div>';
 };
 
-var initializeLevel = function initializeLevel( letters, dummyLetterCount ){
+var initializeLevel = function initializeLevel( letters, dummyLetterCount, img ){
 	var i, len;
 	dummyLetterCount = dummyLetterCount || 0;
 	var dummyLetter = getRandomLetter();
@@ -119,35 +164,42 @@ var initializeLevel = function initializeLevel( letters, dummyLetterCount ){
 		$( '#letterContainer' ).append( getLetterHTML( dummyLetter ) );
 	}
 
+	$( '#bspellContainer' ).append( '<img src="' + img + '" height="300" />' );
+
 	alignTargetSizes();
 };
 
+var randomizeLetters = function randomizeLetters(){
+	$( '.letter' ).each(function(){		
+		do{
+			var newPos = getRandomPosition( this );
+
+			$(this).css('top', newPos.y );
+			$(this).css('left', newPos.x );
+		} while ( intersectsAny( this, $(this).siblings() ) )
+	});
+};
+
 getNextWord( initializeLevel );
+randomizeLetters();
 
 $( document ).bind( 'hashchange', function(){
 	getNextWord( initializeLevel );
 });
-
-
-
-
+$( window ).bind( 'orientationchange', randomizeLetters );
 
 $( 'body' ).css( 'height', $( window ).height() );
 
-$( 'body' ).bind( 'selectstart selectend', function(){
-	return false;
+$( window ).bind( 'selectstart selectend', function( e ){
+	e.preventDefault();
 });
 
-$( '.letter' ).each(function(){
-	var newPos = getRandomPosition( this );
-
-	$(this).css('top', newPos.y );
-	$(this).css('left', newPos.x );
+$( window ).bind( 'touchstart', function( e ){
+	e.preventDefault();
 });
 
 $( 'body' ).on( 'mousedown touchstart', '.letter:not(.correct)', function( e ){
 	if( e.type === 'touchstart' ){
-		e.preventDefault();
 		var x = e.originalEvent.targetTouches[ 0 ].pageX;
 		var y = e.originalEvent.targetTouches[ 0 ].pageY;
 	}else{
