@@ -2,11 +2,8 @@ html{
 	font-size: 62.5%;
 }
 body{
-	font-family: "Comic Sans MS", Helvetica, Arial, sans-serif;
+	font-family: "Andika", "Comic Sans MS", Helvetica, Arial, sans-serif;
 	margin: 0;
-}
-body.correct{
-	background: #3db85c;
 }
 #bspellContainer{
 	font-size: 400%;
@@ -40,10 +37,13 @@ body.correct{
 	font-size: 1.2em;
 }
 .letter.correct{
+	/*
 	background: transparent;
 	box-shadow: none;
 	border: none;
 	z-index: 100 !important;
+	*/
+	display: none;
 }
 #targetContainer{
 	text-align: center;
@@ -54,6 +54,7 @@ body.correct{
 	border: 1px solid #669;
 	padding: 20px;
 	margin: 20px 20px 0 0;
+	color: #fff;
 	/* extra junk */
 	border-radius: 5px;
 	box-shadow: inset 0 0 10px rgba( 0, 0, 0, 0.5 );
@@ -64,6 +65,9 @@ body.correct{
 	position: relative;
 	top: -9999px;
 }
-.target.letter-hover{
+.target.correct{
 	background: #1e9a3e;
+}
+.target.correct .target-inner{
+	position: static;
 }

@@ -7,6 +7,7 @@ var dragOffset = {
 };
 var lastZIndex = 100;
 var fudgeFactor = 20;
+var levelCount = 0;
 
 var clamp = function clamp( num, min, max ){
 	if( num < min ){
@@ -83,7 +84,8 @@ var intersectsAny = function intersectsAny( elem, rivals ){
 
 var isComplete = function isComplete(){
 	if( $( '.letter.correct' ).length === $( '.target' ).length ){
-		$( 'body' ).addClass( 'correct' );
+		levelCount++;
+		getNextWord( levelCount, initializeLevel );
 	}
 };
 
@@ -125,14 +127,20 @@ var alignTargetSizes = function alignTargetSizes(){
 	});
 };
 
-var getNextWord = function getNextWord( onComplete ){
-	var word = location.hash.replace( '#', '' ) || 'burento';
-	var img = 'http://4.bp.blogspot.com/-ekz67FY3QaA/TbZoxbVKTiI/AAAAAAAAAbM/QfjWUVU4kmc/s1600/bird.jpg';
+var getNextWord = function getNextWord( level, onComplete ){
 
-	if( word.indexOf( ',' ) !== -1 ){
-		word = word.split( ',' );
-	}
-	onComplete( word, 0, img );
+	$.getJSON(
+		'levels.json',
+		null,
+		function( data ){
+			onComplete(
+				data[ level ].word,
+				data[ level ].extraLetters,
+				data[ level ].img,
+				data[ level ].text
+			);
+		}
+	);
 };
 
 var getLetterHTML = function getLetterHTML( letter ){
@@ -142,7 +150,7 @@ var getTargetHTML = function getTargetHTML( letter ){
 	return '<div class="target"><span class="target-inner">' + letter + '</span></div>';
 };
 
-var initializeLevel = function initializeLevel( letters, dummyLetterCount, img ){
+var initializeLevel = function initializeLevel( letters, dummyLetterCount, img, text ){
 	var i, len;
 	dummyLetterCount = dummyLetterCount || 0;
 	var dummyLetter = getRandomLetter();
@@ -164,9 +172,11 @@ var initializeLevel = function initializeLevel( letters, dummyLetterCount, img )
 		$( '#letterContainer' ).append( getLetterHTML( dummyLetter ) );
 	}
 
+	$( '#bspellContainer img' ).remove();
 	$( '#bspellContainer' ).append( '<img src="' + img + '" height="300" />' );
 
 	alignTargetSizes();
+	randomizeLetters();
 };
 
 var randomizeLetters = function randomizeLetters(){
@@ -180,8 +190,10 @@ var randomizeLetters = function randomizeLetters(){
 	});
 };
 
-getNextWord( initializeLevel );
-randomizeLetters();
+
+getNextWord( levelCount, initializeLevel );
+
+
 
 $( document ).bind( 'hashchange', function(){
 	getNextWord( initializeLevel );
@@ -222,7 +234,7 @@ $( 'body' ).on( 'mouseup touchend', function(){
 	$( '.target' ).each(function(){
 		if( contains( this, isDragging ) ){
 			if(  $( this ).find( '.target-inner' )[ 0 ].innerHTML === isDragging.innerHTML ){
-				$( this ).addClass( 'letter-hover' );
+				$( this ).addClass( 'correct' );
 				$( isDragging )
 					.addClass( 'correct' )
 					.css({
@@ -266,3 +278,10 @@ $( 'body' ).bind( 'mousemove touchmove', function( e ){
 	});
 
 });
+
+WebFontConfig = {
+	google: { families: [ 'Andika::latin' ] }
+};
+$(  '<script>' )
+	.attr('src', '//ajax.googleapis.com/ajax/libs/webfont/1/webfont.js' )
+	.appendTo( 'head' );
