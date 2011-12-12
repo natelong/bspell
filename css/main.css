@@ -9,6 +9,17 @@ body{
 	font-size: 400%;
 	text-align: center;
 }
+body.loading #bspellContainer{
+	visibility: hidden;
+}
+body .loadingMessage{
+	display: none;
+	text-align: center;
+}
+body.loading .loadingMessage{
+	display: block;
+}
+
 #bspellContainer > img{
 	padding: 10px;
 	border-radius: 5px;
@@ -16,8 +27,7 @@ body{
 	padding: auto auto;
 }
 .letter{
-	float: left;
-	padding: 20px;
+	padding: 5px 20px;
 	border: 1px solid #999;
 	position: absolute;
 	cursor: pointer;

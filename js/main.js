@@ -83,10 +83,12 @@ var intersectsAny = function intersectsAny( elem, rivals ){
 };
 
 var isComplete = function isComplete(){
-	if( $( '.letter.correct' ).length === $( '.target' ).length ){
-		levelCount++;
-		getNextWord( levelCount, initializeLevel );
+	if( $( '.letter.correct' ).length !== $( '.target' ).length ){
+		return false;
 	}
+
+	levelCount++;
+	getNextWord( levelCount, initializeLevel );
 };
 
 var getRandomPosition = function getRandomPosition( elem ){
@@ -94,8 +96,9 @@ var getRandomPosition = function getRandomPosition( elem ){
 	var height = $( window ).height();
 	var newTop = Math.random() * height;
 	var newLeft = Math.random() * width;
-	newTop = clamp( newTop, 200, height - $( elem ).outerHeight() - 20 );
-	newLeft = clamp( newLeft, 20, width - $( elem ).outerWidth() - 20 );
+
+	newTop = clamp( newTop, 200, height - $( elem ).outerHeight() - 200 );
+	newLeft = clamp( newLeft, 200, width - $( elem ).outerWidth() - 200 );
 	return {
 		x: newLeft,
 		y: newTop
@@ -177,6 +180,7 @@ var initializeLevel = function initializeLevel( letters, dummyLetterCount, img, 
 
 	alignTargetSizes();
 	randomizeLetters();
+	$( 'body' ).removeClass( 'loading' );
 };
 
 var randomizeLetters = function randomizeLetters(){
@@ -235,12 +239,7 @@ $( 'body' ).on( 'mouseup touchend', function(){
 		if( contains( this, isDragging ) ){
 			if(  $( this ).find( '.target-inner' )[ 0 ].innerHTML === isDragging.innerHTML ){
 				$( this ).addClass( 'correct' );
-				$( isDragging )
-					.addClass( 'correct' )
-					.css({
-						top: $(this).offset().top + $(this).outerHeight() / 2 - $(isDragging).outerHeight() / 2,
-						left: $(this).offset().left + $(this).outerWidth() / 2 - $(isDragging).outerWidth() / 2
-					});
+				$( isDragging ).addClass( 'correct' );
 
 				isDragging = false;
 				isComplete();
