@@ -6,8 +6,12 @@ var dragOffset = {
 	y: 0
 };
 var lastZIndex = 100;
-var fudgeFactor = 20;
+var fudgeFactor = 40;
 var levelCount = 0;
+var levelData;
+var levelName = location.hash.substr( 1 ) || 'levels';
+var confirmationMessage = 'Hooray! You spelled the word correctly!<br /><small>Click or tap anywhere to continue.</small>';
+var finishMessage = 'You\'ve finished all of the levels!<br /><small>Click or tap anywhere to start over.</small>';
 
 var clamp = function clamp( num, min, max ){
 	if( num < min ){
@@ -87,8 +91,35 @@ var isComplete = function isComplete(){
 		return false;
 	}
 
-	levelCount++;
-	getNextWord( levelCount, initializeLevel );
+	if( levelCount < levelData.length - 1 ){
+		popupConfirmation( confirmationMessage, function(){
+			levelCount++;
+			getNextWord( initializeLevel );
+		});
+	}else{
+		popupConfirmation( finishMessage, function(){
+			window.location.reload();
+		});
+	}
+};
+
+var popupConfirmation = function popupConfirmation( message, callback ){
+	$( '<div>' )
+		.addClass( 'overlay' )
+		.css({
+			width: $(window).width(),
+			height: $(window).height()
+		})
+		.bind( 'touchstart click', function(){
+			$('.overlay').remove();
+			callback();
+		})
+		.appendTo( '#bspellContainer' );
+	
+	$( '<div>' )
+		.addClass( 'popup' )
+		.html( message )
+		.appendTo( '.overlay' );
 };
 
 var getRandomPosition = function getRandomPosition( elem ){
@@ -130,19 +161,23 @@ var alignTargetSizes = function alignTargetSizes(){
 	});
 };
 
-var getNextWord = function getNextWord( level, onComplete ){
-
+var getLevelData = function getLevelData( onComplete ){
 	$.getJSON(
-		'levels.json',
+		levelName + '.json',
 		null,
 		function( data ){
-			onComplete(
-				data[ level ].word,
-				data[ level ].extraLetters,
-				data[ level ].img,
-				data[ level ].text
-			);
+			levelData = data;
+			onComplete();
 		}
+	);
+};
+
+var getNextWord = function getNextWord( onComplete ){
+	onComplete(
+		levelData[ levelCount ].word,
+		levelData[ levelCount ].extraLetters,
+		levelData[ levelCount ].img,
+		levelData[ levelCount ].text
 	);
 };
 
@@ -195,7 +230,9 @@ var randomizeLetters = function randomizeLetters(){
 };
 
 
-getNextWord( levelCount, initializeLevel );
+getLevelData( function(){
+	getNextWord( initializeLevel );
+});
 
 
 

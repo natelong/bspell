@@ -47,12 +47,6 @@ body.loading .loadingMessage{
 	font-size: 1.2em;
 }
 .letter.correct{
-	/*
-	background: transparent;
-	box-shadow: none;
-	border: none;
-	z-index: 100 !important;
-	*/
 	display: none;
 }
 #targetContainer{
@@ -80,4 +74,24 @@ body.loading .loadingMessage{
 }
 .target.correct .target-inner{
 	position: static;
+}
+
+.overlay{
+	width: 100px;
+	height: 100px;
+	position: absolute;
+	top: 0;
+	left: 0;
+	background: rgba( 0, 0, 0, 0.5 );
+	z-index: 200;
+}
+.popup{
+	padding: 10px;
+	box-shadow: 0 0 10px rgba( 0, 0, 0, 0.5 );
+	background: #fff;
+	width: 400px;
+	margin: 100px auto;
+}
+small{
+	font-size: 14px;
 }

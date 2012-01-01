@@ -1,0 +1,28 @@
+[
+	{
+		"word": "bird",
+		"img": "http://4.bp.blogspot.com/-ekz67FY3QaA/TbZoxbVKTiI/AAAAAAAAAbM/QfjWUVU4kmc/s1600/bird.jpg",
+		"text": "",
+		"extraLetters": 2
+	},{
+		"word": "boat",
+		"img": "http://www.bizarrebids.com/wp-images/posts/october07/boat.jpg",
+		"text": "",
+		"extraLetters": 2
+	},{
+		"word": "tree",
+		"img": "http://www.lawnservicema.com/tree.jpg",
+		"text": "",
+		"extraLetters": 5
+	},{
+		"word": "mouse",
+		"img": "http://www.justanimal.org/images/mouse-1.jpg",
+		"text": "",
+		"extraLetters": 2
+	},{
+		"word": "dog",
+		"img": "http://upload.wikimedia.org/wikipedia/commons/thumb/2/26/YellowLabradorLooking_new.jpg/260px-YellowLabradorLooking_new.jpg",
+		"text": "",
+		"extraLetters": 2
+	}
+]
